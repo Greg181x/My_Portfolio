@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vlad — Web Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111;
+      --border: #1e1e1e;
+      --accent: #c8f04a;
+      --accent2: #4af0c8;
+      --text: #e8e8e0;
+      --muted: #666;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 300;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 4rem;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s, backdrop-filter 0.3s, background 0.3s;
+    }
+    nav.scrolled {
+      border-color: var(--border);
+      backdrop-filter: blur(16px);
+      background: rgba(10,10,10,0.7);
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* hamburger */
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+    .hamburger span { display: block; width: 24px; height: 1.5px; background: var(--text); transition: all 0.3s; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 8rem 4rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 70% 50%, rgba(200,240,74,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(74,240,200,0.04) 0%, transparent 60%);
+    }
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .hero-content { position: relative; max-width: 900px; width: 100%; }
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 14vw, 11rem);
+      line-height: 0.9;
+      letter-spacing: 2px;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.4s forwards;
+    }
+    .hero-name span { color: var(--accent); }
+    .hero-tagline {
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      color: var(--muted);
+      margin-top: 2rem;
+      max-width: 500px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+    .hero-cta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.8s forwards;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 2rem;
+      border-radius: 2px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0a;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background: #d9ff5a; transform: translateY(-2px); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--muted); transform: translateY(-2px); }
+
+    /* scroll indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 1.2s forwards;
+    }
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 7rem 4rem; max-width: 1100px; margin: 0 auto; }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1;
+      letter-spacing: 1px;
+      margin-bottom: 3rem;
+    }
+
+    /* ── ABOUT ── */
+    #about { max-width: 1100px; }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .about-text p {
+      color: #aaa;
+      margin-bottom: 1.25rem;
+      font-size: 1.05rem;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .stat-card {
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transition: transform 0.3s;
+      transform-origin: left;
+    }
+    .stat-card:hover::before { transform: scaleX(1); }
+    .stat-card:hover { border-color: rgba(200,240,74,0.3); }
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── SKILLS ── */
+    #skills { background: var(--surface); max-width: 100%; padding: 7rem 0; }
+    #skills > div { max-width: 1100px; margin: 0 auto; padding: 0 4rem; }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .skill-item {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.25s;
+      cursor: default;
+    }
+    .skill-item:hover {
+      border-color: rgba(200,240,74,0.4);
+      transform: translateX(4px);
+    }
+    .skill-icon {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      background: rgba(200,240,74,0.1);
+      border-radius: 2px;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .skill-name {
+      font-weight: 400;
+      font-size: 0.95rem;
+    }
+    .skill-level {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    /* ── PROJECTS ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .project-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+    .project-card:hover { border-color: rgba(200,240,74,0.4); transform: translateY(-4px); }
+    .project-thumb {
+      height: 180px;
+      background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: rgba(200,240,74,0.15);
+      letter-spacing: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    .project-thumb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(200,240,74,0.05), rgba(74,240,200,0.05));
+    }
+    .project-body { padding: 1.75rem; flex: 1; display: flex; flex-direction: column; }
+    .project-type {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .project-title { font-size: 1.15rem; font-weight: 500; margin-bottom: 0.75rem; }
+    .project-desc { color: var(--muted); font-size: 0.9rem; flex: 1; margin-bottom: 1.25rem; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 2px;
+    }
+
+    /* ── TESTIMONIALS ── */
+    #testimonials { background: var(--bg); max-width: 100%; padding: 7rem 0; }
+    #testimonials > div { max-width: 1100px; margin: 0 auto; padding: 0 4rem; }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .testimonial-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 2rem;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .testimonial-card:hover { border-color: rgba(200,240,74,0.3); }
+    .quote-mark {
+      font-family: var(--font-display);
+      font-size: 4rem;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      opacity: 0.6;
+    }
+    .testimonial-text {
+      color: #aaa;
+      font-size: 0.95rem;
+      margin-bottom: 1.75rem;
+      font-style: italic;
+    }
+    .testimonial-author { display: flex; align-items: center; gap: 0.75rem; }
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .author-name { font-weight: 500; font-size: 0.9rem; }
+    .author-role { font-size: 0.78rem; color: var(--muted); font-family: var(--font-mono); }
+    .stars { color: var(--accent); font-size: 0.8rem; margin-bottom: 0.75rem; }
+
+    /* ── CONTACT ── */
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .contact-info p { color: var(--muted); font-size: 1rem; margin-bottom: 2rem; }
+    .contact-links { display: flex; flex-direction: column; gap: 1rem; }
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    .contact-link:hover { border-color: rgba(200,240,74,0.4); color: var(--accent); }
+    .contact-link span:first-child { font-size: 1.2rem; }
+
+    .contact-form { display: flex; flex-direction: column; gap: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    label { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+    input, textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.85rem 1rem;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      border-radius: 2px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input:focus, textarea:focus { border-color: rgba(200,240,74,0.5); }
+    textarea { resize: vertical; min-height: 130px; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 1.25rem 1.5rem; }
+      .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; background: var(--bg); border-bottom: 1px solid var(--border); padding: 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+      .hamburger { display: flex; }
+
+      section { padding: 5rem 1.5rem; }
+      #hero { padding: 7rem 1.5rem 4rem; }
+      .about-grid, .contact-wrapper { grid-template-columns: 1fr; gap: 3rem; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem 1.5rem; }
+      #skills > div, #testimonials > div { padding: 0 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <a href="#hero" class="nav-logo">VLAD.</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#testimonials">Testimonials</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <p class="hero-tag">⚡ Available for freelance &amp; full-time</p>
+      <h1 class="hero-name">VLAD<span>.</span></h1>
+      <p class="hero-tagline">Web developer with 3 years of crafting fast, beautiful, and accessible digital experiences that actually convert.</p>
+      <div class="hero-cta">
+        <a href="#projects" class="btn btn-primary">View My Work →</a>
+        <a href="#contact" class="btn btn-secondary">Let's Talk</a>
+      </div>
+    </div>
+    <div class="scroll-hint">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p class="section-label">About Me</p>
+        <h2 class="section-title">I BUILD FOR THE WEB</h2>
+        <p>Hey, I'm Vlad — a web developer who's spent the last 3 years obsessing over clean code, smooth UX, and websites that make people go "wow."</p>
+        <p>I work across the full stack, with a passion for crafting pixel-perfect frontends and rock-solid backends. Whether it's a simple landing page or a complex web app, I bring the same level of care to every line of code.</p>
+        <p>When I'm not coding, I'm exploring the latest in web tech, contributing to open source, or thinking about why certain buttons feel so satisfying to click.</p>
+      </div>
+      <div class="stats reveal">
+        <div class="stat-card">
+          <div class="stat-number">3+</div>
+          <div class="stat-label">Years Experience</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">15+</div>
+          <div class="stat-label">Projects Shipped</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">25+</div>
+          <div class="stat-label">Happy Clients</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">On-Time Delivery</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div>
+      <p class="section-label reveal">What I Work With</p>
+      <h2 class="section-title reveal">SKILLS &amp;<br>TOOLS</h2>
+      <div class="skills-grid reveal">
+        <div class="skill-item"><div class="skill-icon">⚛️</div><span class="skill-name">React / Next.js</span><span class="skill-level">Advanced</span></div>
+        <div class="skill-item"><div class="skill-icon">🟨</div><span class="skill-name">JavaScript / TypeScript</span><span class="skill-level">Advanced</span></div>
+        <div class="skill-item"><div class="skill-icon">🎨</div><span class="skill-name">CSS / Tailwind</span><span class="skill-level">Expert</span></div>
+        <div class="skill-item"><div class="skill-icon">🐘</div><span class="skill-name">PostgreSQL / MySQL</span><span class="skill-level">Proficient</span></div>
+        <div class="skill-item"><div class="skill-icon">🔥</div><span class="skill-name">Firebase / Supabase</span><span class="skill-level">Proficient</span></div>
+        <div class="skill-item"><div class="skill-icon">🐳</div><span class="skill-name">Docker / CI/CD</span><span class="skill-level">Intermediate</span></div>
+        <div class="skill-item"><div class="skill-icon">☁️</div><span class="skill-name">AWS / Vercel / Netlify</span><span class="skill-level">Proficient</span></div>
+        <div class="skill-item"><div class="skill-icon">🔧</div><span class="skill-name">Git / GitHub</span><span class="skill-level">Advanced</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <p class="section-label reveal">Selected Work</p>
+    <h2 class="section-title reveal">RECENT<br>PROJECTS</h2>
+    <div class="projects-grid reveal">
+
+      <div class="project-card">
+        <div class="project-thumb" style="background: linear-gradient(135deg, #0d1117, #161b22);">eSports</div>
+        <div class="project-body">
+          <p class="project-type">Classic Website</p>
+          <h3 class="project-title">TLF eSports</h3>
+          <p class="project-desc">A full-stack Website for a professional eSports Team</p>
+          <div class="project-tags">
+            <span class="tag">Next.js</span><span class="tag">Stripe</span><span class="tag">PostgreSQL</span><span class="tag">Tailwind</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-thumb" style="background: linear-gradient(135deg, #0d0d1a, #1a1a2e);">Agency</div>
+        <div class="project-body">
+          <p class="project-type">Classic Website</p>
+          <h3 class="project-title">Nexo Group</h3>
+          <p class="project-desc">A full-stack Website for a Matcherion Hosting agency</p>
+          <div class="project-tags">
+            <span class="tag">React</span><span class="tag">Node.js</span><span class="tag">WebSockets</span><span class="tag">Recharts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <div>
+      <p class="section-label reveal">What Clients Say</p>
+      <h2 class="section-title reveal">TESTIMONIALS</h2>
+      <div class="testimonials-grid reveal">
+
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">Vlad completely transformed our outdated website into a sleek, modern platform. Our conversion rate jumped 40% in the first month. Absolutely exceptional work.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: rgba(200,240,74,0.12); color: var(--accent);">S</div>
+            <div>
+              <div class="author-name">Sarah Mitchell</div>
+              <div class="author-role">CEO @ Lumio Digital</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">Working with Vlad was a breeze. He understood our vision immediately and delivered a pixel-perfect result ahead of schedule. He's our go-to developer now.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: rgba(74,240,200,0.12); color: var(--accent2);">M</div>
+            <div>
+              <div class="author-name">Marcus Jensen</div>
+              <div class="author-role">Founder @ Stackly</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">The dashboard Vlad built for us handles thousands of users without a hitch. His attention to performance and clean code made future development so much easier.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: rgba(200,240,74,0.12); color: var(--accent);">A</div>
+            <div>
+              <div class="author-name">Anika Patel</div>
+              <div class="author-role">CTO @ NovaSuite</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">Hired Vlad for a complex e-commerce rebuild. He communicated perfectly throughout, solved every challenge elegantly, and the final product exceeded all expectations.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: rgba(74,240,200,0.12); color: var(--accent2);">T</div>
+            <div>
+              <div class="author-name">Tom Eriksen</div>
+              <div class="author-role">Director @ Artisan Co.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">Vlad has a rare combination of technical depth and design sensibility. Our new site loads in under a second and looks incredible on every device.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: rgba(200,240,74,0.12); color: var(--accent);">J</div>
+            <div>
+              <div class="author-name">Julia Hoffmann</div>
+              <div class="author-role">Marketing Lead @ Prism</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="quote-mark">"</div>
+          <p class="testimonial-text">I've worked with many developers over the years — Vlad stands out for his reliability, code quality, and genuine care for the project's success. Highly recommended.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background: rgba(74,240,200,0.12); color: var(--accent2);">R</div>
+            <div>
+              <div class="author-name">Ryan Castillo</div>
+              <div class="author-role">Product Manager @ Orbit</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <p class="section-label reveal">Get In Touch</p>
+    <h2 class="section-title reveal">LET'S BUILD<br>SOMETHING</h2>
+    <div class="contact-wrapper reveal">
+      <div class="contact-info">
+        <p>Have a project in mind? I'd love to hear about it. Send me a message and let's create something great together.</p>
+        <div class="contact-links">
+          <a href="mailto:vlaxxy10@gmail.com" class="contact-link"><span>✉️</span> vlaxxy10@gmail.com</a>
+          <a href="https://github.com" target="_blank" class="contact-link"><span>🐙</span> Greg1818x</a>
+          <a href="https://linkedin.com" target="_blank" class="contact-link"><span>💼</span> comimg soon...</a>
+          <a href="#" class="contact-link"><span>🐦</span> comimg soon...</a>
+        </div>
+      </div>
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" placeholder="Jane Smith" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="jane@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="message">Your Message</label>
+          <textarea id="message" placeholder="Tell me about your project..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send Message →</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© 2026 <strong>Vlad</strong>. All rights reserved.</span>
+    <span>Built with ♥ and clean code</span>
+    <a href="#hero">Back to top ↑</a>
+  </footer>
+
+  <script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // Mobile menu
+    function toggleMenu() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    // Form submit
+    function handleSubmit(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.textContent = '✓ Message Sent!';
+      btn.style.background = '#4af0c8';
+      setTimeout(() => {
+        btn.textContent = 'Send Message →';
+        btn.style.background = '';
+        e.target.reset();
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
